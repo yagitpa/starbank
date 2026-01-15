@@ -26,12 +26,17 @@ import org.springframework.transaction.PlatformTransactionManager;
  *   <li>rules DB имеет свой {@link DataSource}, EntityManagerFactory и TransactionManager</li>
  *   <li>JPA-репозитории ограничены rules-пакетом</li>
  * </ul>
+ * <p>Настроено под структуру проекта:
+ * <ul>
+ *   <li>Entity: ru.starbank.recommendation.domain.rules.entity</li>
+ *   <li>Repository: ru.starbank.recommendation.repository</li>
+ * </ul>
  *
  * <p>Префикс настроек: spring.rules-datasource.*
  */
 @Configuration
 @EnableJpaRepositories(
-        basePackages = "ru.starbank.recommendation.rules.repository",
+        basePackages = "ru.starbank.recommendation.repository",
         entityManagerFactoryRef = "rulesEntityManagerFactory",
         transactionManagerRef = "rulesTransactionManager"
 )
@@ -70,7 +75,7 @@ public class RulesDataSourceConfig {
 
         return builder
                 .dataSource(rulesDataSource)
-                .packages("ru.starbank.recommendation.rules.entity")
+                .packages("ru.starbank.recommendation.domain.rules.entity")
                 .persistenceUnit("rules")
                 .properties(jpaProps)
                 .build();
