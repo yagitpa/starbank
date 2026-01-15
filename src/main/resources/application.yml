@@ -2,6 +2,7 @@ server:
   port: 8080
 
 spring:
+  # Первая БД (knowledge DB)- для получения транзакций
   datasource:
     driver-class-name: org.h2.Driver
     url: jdbc:h2:file:./transaction;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE;MODE=PostgreSQL
