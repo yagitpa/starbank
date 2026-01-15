@@ -3,6 +3,8 @@ package ru.starbank.recommendation.domain.rules.engine;
 import org.springframework.stereotype.Component;
 import ru.starbank.recommendation.domain.rules.entity.RuleQueryEntity;
 
+import java.util.UUID;
+
 /**
  * Движок выполнения динамических условий.
  *
@@ -24,7 +26,7 @@ public class QueryEngine {
     /**
      * Выполнить условие для пользователя с учётом negate.
      */
-    public boolean evaluate(long userId, RuleQueryEntity query) {
+    public boolean evaluate(UUID userId, RuleQueryEntity query) {
         boolean result = registry
                 .getExecutor(query.getQuery())
                 .execute(userId, query);
