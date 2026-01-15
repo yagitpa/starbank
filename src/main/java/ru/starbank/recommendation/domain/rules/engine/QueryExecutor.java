@@ -2,6 +2,8 @@ package ru.starbank.recommendation.domain.rules.engine;
 
 import ru.starbank.recommendation.domain.rules.entity.RuleQueryEntity;
 
+import java.util.UUID;
+
 /**
  * Исполнитель одного типа query.
  *
@@ -16,5 +18,5 @@ public interface QueryExecutor {
      * @param query  сущность условия
      * @return результат выполнения (до применения negate)
      */
-    boolean execute(long userId, RuleQueryEntity query);
+    boolean execute(UUID userId, RuleQueryEntity query);
 }
