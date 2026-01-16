@@ -8,10 +8,10 @@ import java.util.List;
 public record ValidationErrorResponse(String message, List<String> errors) {
 
     public ValidationErrorResponse(String message) {
-        this(message, List.of());  // Пустой список, если ошибок нет
+        this(message, List.of());
     }
 
     public void addError(String error) {
-        this.errors.add(error);  // Добавление ошибки в список
+        this.errors.add(error);
     }
 }

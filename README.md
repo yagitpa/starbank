@@ -1,52 +1,220 @@
-# StarBank Recommendation Service (Stage 1)
+# StarBank Recommendation Service
 
-Сервис рекомендаций банковских продуктов на Java 17 + Spring Boot 3.5.x.
+Сервис рекомендаций банковских продуктов.
 
-## Ключевые особенности
+---
 
-- **H2 file-based БД (read-only)**: приложение ничего не пишет в БД и не управляет схемой
-- **Только JdbcTemplate** (по требованиям Stage 1)
-- Денежные суммы в БД хранятся **в копейках**, сервис работает с суммами **в рублях** через `BigDecimal`
-- Архитектура рекомендаций: `RecommendationRuleSet` + 3 реализации (`@Component`)
-- OpenAPI/Swagger UI
+## Что реализовано
 
-## Технологии
+### Stage 1
+- Эндпоинт получения рекомендаций: `GET /recommendation/{userId}`
+- Фиксированные правила рекомендаций (rule sets)
+- Основная БД знаний (users / products / transactions)
+- Работа с основной БД через `JdbcTemplate`
 
+### Stage 2
+- Динамические правила рекомендаций (CRUD через REST API)
+- Отдельная rules DB (JPA + Liquibase)
+- Rule Engine для исполнения условий (4 типа query)
+- Поддержка `negate` и операторов сравнения
+- Кеширование SQL-запросов knowledge DB через Caffeine
+- Интеграция динамических правил в `/recommendation/{userId}` без breaking changes
+- OpenAPI / Swagger UI
+- Unit и Integration tests
+
+---
+
+## Архитектура
+
+### Базы данных
+
+**knowledge DB (основная)**  
+Содержит пользователей, продукты и транзакции. Используется для расчётов условий динамических правил и для фиксированных правил Stage 1. Доступ — через `JdbcTemplate`.
+
+**rules DB (вторая)**  
+Хранит динамические правила. Доступ — через JPA (`RuleRepository`). Схема создаётся Liquibase (`db/changelog/db.changelog-rules.yaml`).
+
+### Правила
+
+**Fixed rules (Stage 1)**  
+Реализованы через `RecommendationRuleSet` и остаются без изменений.
+
+**Dynamic rules (Stage 2)**  
+Хранятся в rules DB, загружаются и исполняются через `QueryEngine` и набор executor-ов.
+
+---
+
+## API
+
+### Swagger / OpenAPI
+- Swagger UI: `/swagger-ui/index.html`
+- OpenAPI JSON: `/v3/api-docs`
+
+---
+
+## Эндпоинты
+
+### Получение рекомендаций
+`GET /recommendation/{userId}`
+
+Возвращает рекомендации, сформированные:
+- фиксированными правилами (Stage 1)
+- динамическими правилами (Stage 2)
+
+Контракт API не изменён относительно Stage 1.
+
+---
+
+### Управление динамическими правилами
+
+#### Создание правила
+`POST /rule`
+
+Пример:
+```json
+{
+  "product_name": "Кредитная карта",
+  "product_id": "11111111-1111-1111-1111-111111111111",
+  "product_text": "Оформите кредитную карту с льготным периодом до 120 дней",
+  "rule": [
+    {
+      "query": "USER_OF",
+      "arguments": ["DEBIT"],
+      "negate": false
+    }
+  ]
+}
+```
+
+#### Получение всех правил
+`GET /rule`
+
+Ответ:
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "product_name": "Кредитная карта",
+      "product_id": "11111111-1111-1111-1111-111111111111",
+      "product_text": "Оформите кредитную карту с льготным периодом до 120 дней",
+      "rule": [
+        {
+          "query": "USER_OF",
+          "arguments": ["DEBIT"],
+          "negate": false
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### Удаление правила
+`DELETE /rule/{id}`
+
+Возвращает `204 No Content`.
+
+---
+
+## Типы query (Stage 2)
+
+### 1) USER_OF
+Проверяет, что у пользователя есть хотя бы одна транзакция по продукту типа `productType`.
+
+Формат:
+```json
+{ "query": "USER_OF", "arguments": ["DEBIT"], "negate": false }
+```
+
+---
+
+### 2) ACTIVE_USER_OF
+Активный пользователь продукта — количество транзакций по продукту >= 5.
+
+Формат:
+```json
+{ "query": "ACTIVE_USER_OF", "arguments": ["DEBIT"], "negate": false }
+```
+
+---
+
+### 3) TRANSACTION_SUM_COMPARE
+Сравнивает сумму транзакций по продукту и типу транзакции с порогом.
+
+Формат arguments:
+```
+[productType, transactionType, operator, amount]
+```
+
+Пример:
+```json
+{
+  "query": "TRANSACTION_SUM_COMPARE",
+  "arguments": ["DEBIT", "WITHDRAW", ">", "100000"],
+  "negate": false
+}
+```
+
+Поддерживаемые операторы:
+```
+>, <, =, >=, <=
+```
+
+---
+
+### 4) TRANSACTION_SUM_COMPARE_DEPOSIT_WITHDRAW
+Сравнивает суммы `DEPOSIT` и `WITHDRAW` по продукту.
+
+Формат arguments:
+```
+[productType, operator]
+```
+
+Пример:
+```json
+{
+  "query": "TRANSACTION_SUM_COMPARE_DEPOSIT_WITHDRAW",
+  "arguments": ["SAVING", ">="],
+  "negate": false
+}
+```
+
+---
+
+## Запуск проекта
+
+### Требования
 - Java 17
-- Spring Boot 3.5.9
-- H2 Database
-- Spring JDBC (JdbcTemplate)
-- springdoc-openapi
-- JUnit 5 + Mockito
+- Maven
 
-## Как запустить
+### Конфигурация БД
 
-### 1) Требования
-- JDK 17
-- IntelliJ IDEA (или любая IDE)
-- Maven (можно запускать через Maven tool window в IntelliJ)
+- `spring.datasource.*` — knowledge DB
+- `spring.rules-datasource.*` — rules DB
 
-### 2) Подготовка H2 файла базы
-Положите файл базы рядом с `pom.xml`.
+Миграции rules DB выполняются через Liquibase:
+`db/changelog/db.changelog-rules.yaml`.
 
-Пример для URL `jdbc:h2:file:./transaction`:
-- файл должен называться `transaction.mv.db`
+---
 
-Если файл называется иначе, поменяйте URL в `application.yml` на соответствующий.
+## Тесты
 
-### 3) Настройки приложения
-`src/main/resources/application.yml` содержит подключение в read-only режиме:
-
-- `ACCESS_MODE_DATA=r`
-
-Логин и пароль не используются (пустые значения).
-
-### 4) Запуск
-Через IntelliJ:
-- Maven Tool Window → Lifecycle → `test`
-- затем запустить `StarBankRecommendationApplication`
-
-Или командой (если Maven есть в PATH):
+### Unit tests
 ```bash
-mvn clean test
-mvn spring-boot:run
+mvn test
+```
+
+### Integration tests (Stage 2)
+Используется профиль `test`, обе БД поднимаются в H2 in-memory.
+```bash
+mvn test -Dspring.profiles.active=test
+```
+
+---
+
+## Примечания
+
+- Денежные суммы хранятся и агрегируются как `long` в рублях.
+- `negate = true` инвертирует результат условия на уровне `QueryEngine`.
+- Кеширование запросов knowledge DB реализовано через Caffeine.
