@@ -1,0 +1,30 @@
+spring:
+  # Основная БД (knowledge DB) — H2 in-memory для интеграционных тестов
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:knowledge;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+
+  # Вторая БД (rules DB) — тоже H2 in-memory
+  rules-datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:rules;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+
+  # Важно: DDL делаем не Hibernate, а через Liquibase для rules DB и sql init для knowledge DB
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+  # Авто-liquibase выключен (как в проекте), rules liquibase запускается вручную через RulesLiquibaseConfig
+  liquibase:
+    enabled: false
+
+  # Инициализация схемы основной БД (knowledge DB)
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:sql/knowledge-schema.sql
+      data-locations: classpath:sql/knowledge-data.sql
