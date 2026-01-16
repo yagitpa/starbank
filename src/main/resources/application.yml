@@ -34,4 +34,5 @@ logging:
     ru.starbank.recommendation: INFO
     org.springframework.jdbc.core: INFO
     com.zaxxer.hikari: INFO
+    ru.starbank.recommendation.domain.rules.engine: DEBUG
 
