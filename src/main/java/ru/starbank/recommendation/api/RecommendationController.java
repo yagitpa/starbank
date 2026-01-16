@@ -1,13 +1,10 @@
 package ru.starbank.recommendation.api;
 
-import java.util.UUID;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,10 +12,11 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
-
 import ru.starbank.recommendation.domain.dto.RecommendationResponseDto;
 import ru.starbank.recommendation.service.RecommendationService;
 import ru.starbank.recommendation.support.util.UuidParser;
+
+import java.util.UUID;
 
 /**
  * REST controller for recommendation endpoint.

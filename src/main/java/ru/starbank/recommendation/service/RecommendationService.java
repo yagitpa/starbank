@@ -1,17 +1,16 @@
 package ru.starbank.recommendation.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import ru.starbank.recommendation.domain.dto.RecommendationDto;
+import ru.starbank.recommendation.domain.dto.RecommendationResponseDto;
+import ru.starbank.recommendation.domain.rules.RecommendationRuleSet;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
-import ru.starbank.recommendation.domain.dto.RecommendationDto;
-import ru.starbank.recommendation.domain.dto.RecommendationResponseDto;
-import ru.starbank.recommendation.domain.rules.RecommendationRuleSet;
 
 /**
  * Service that aggregates product recommendations for a user.

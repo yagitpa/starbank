@@ -1,12 +1,12 @@
 package ru.starbank.recommendation.domain.rules.engine.executor;
 
 import org.springframework.stereotype.Component;
-import ru.starbank.recommendation.domain.rules.entity.QueryType;
-import ru.starbank.recommendation.domain.rules.entity.RuleQueryEntity;
-import ru.starbank.recommendation.repository.KnowledgeRepository;
 import ru.starbank.recommendation.domain.rules.engine.ComparisonOperator;
 import ru.starbank.recommendation.domain.rules.engine.QueryArgumentsParser;
 import ru.starbank.recommendation.domain.rules.engine.TypedQueryExecutor;
+import ru.starbank.recommendation.domain.rules.entity.QueryType;
+import ru.starbank.recommendation.domain.rules.entity.RuleQueryEntity;
+import ru.starbank.recommendation.repository.KnowledgeRepository;
 
 import java.util.List;
 import java.util.Objects;

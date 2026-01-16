@@ -1,13 +1,13 @@
 package ru.starbank.recommendation.domain.rules;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import ru.starbank.recommendation.repository.RecommendationRepository;
+
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 class Invest500RuleSetTest {
 

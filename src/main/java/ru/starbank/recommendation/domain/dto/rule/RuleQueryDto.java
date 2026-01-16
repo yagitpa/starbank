@@ -2,9 +2,9 @@ package ru.starbank.recommendation.domain.dto.rule;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import jakarta.validation.constraints.NotBlank;
 import ru.starbank.recommendation.domain.rules.entity.QueryType;
 
 import java.util.List;

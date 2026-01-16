@@ -1,14 +1,13 @@
 package ru.starbank.recommendation.domain.rules;
 
-import java.util.Optional;
-import java.util.UUID;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
 import ru.starbank.recommendation.domain.dto.RecommendationDto;
 import ru.starbank.recommendation.repository.RecommendationRepository;
+
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Recommendation rule set for product "Invest 500".
