@@ -3,7 +3,6 @@ package ru.starbank.recommendation.domain.rules.engine.executor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-
 import ru.starbank.recommendation.domain.rules.engine.QueryArgumentsParser;
 import ru.starbank.recommendation.domain.rules.entity.QueryType;
 import ru.starbank.recommendation.domain.rules.entity.RuleQueryEntity;
@@ -11,7 +10,8 @@ import ru.starbank.recommendation.repository.KnowledgeRepository;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 class TransactionSumCompareExecutorTest {

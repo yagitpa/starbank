@@ -1,19 +1,18 @@
 package ru.starbank.recommendation.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import ru.starbank.recommendation.domain.dto.RecommendationDto;
 import ru.starbank.recommendation.domain.rules.engine.QueryEngine;
 import ru.starbank.recommendation.domain.rules.entity.RuleEntity;
 import ru.starbank.recommendation.exception.InvalidProductIdException;
 import ru.starbank.recommendation.repository.RuleRepository;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Сервис, который вычисляет рекомендации из динамических правил (rules DB).
