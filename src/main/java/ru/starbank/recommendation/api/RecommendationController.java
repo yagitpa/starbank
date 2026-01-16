@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -22,6 +23,7 @@ import ru.starbank.recommendation.support.util.UuidParser;
 /**
  * REST controller for recommendation endpoint.
  */
+@Tag(name = "Recommendations", description = "Получение рекомендаций для пользователя")
 @RestController
 public class RecommendationController {
     private static final Logger log = LoggerFactory.getLogger(RecommendationController.class);
