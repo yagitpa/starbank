@@ -1,52 +1,64 @@
-# StarBank Recommendation Service (Stage 1)
+# StarBank Recommendation Service
 
-Сервис рекомендаций банковских продуктов на Java 17 + Spring Boot 3.5.x.
+Сервис рекомендаций банковских продуктов.
 
-## Ключевые особенности
+## Что реализовано
 
-- **H2 file-based БД (read-only)**: приложение ничего не пишет в БД и не управляет схемой
-- **Только JdbcTemplate** (по требованиям Stage 1)
-- Денежные суммы в БД хранятся **в копейках**, сервис работает с суммами **в рублях** через `BigDecimal`
-- Архитектура рекомендаций: `RecommendationRuleSet` + 3 реализации (`@Component`)
-- OpenAPI/Swagger UI
+### Stage 1
+- Эндпоинт получения рекомендаций: `GET /recommendation/{userId}`
+- Фиксированные правила рекомендаций (rule sets)
+- Основная БД знаний (transactions/products/users) — через `JdbcTemplate`
 
-## Технологии
+### Stage 2
+- Динамические правила (CRUD через REST API) во второй БД (rules DB)
+- Rule Engine для исполнения условий (4 типа query)
+- Кеширование SQL-запросов к knowledge DB через Caffeine
+- Интеграция динамических правил в `/recommendation/{userId}` без breaking changes
+- OpenAPI / Swagger UI
+- Unit + integration tests
 
-- Java 17
-- Spring Boot 3.5.9
-- H2 Database
-- Spring JDBC (JdbcTemplate)
-- springdoc-openapi
-- JUnit 5 + Mockito
+---
 
-## Как запустить
+## Архитектура (кратко)
 
-### 1) Требования
-- JDK 17
-- IntelliJ IDEA (или любая IDE)
-- Maven (можно запускать через Maven tool window в IntelliJ)
+- **knowledge DB** (основная): используется для расчётов по транзакциям (JdbcTemplate)
+- **rules DB** (вторая): хранит динамические правила (JPA + Liquibase)
+- **Fixed rules** (Stage 1): остаются как есть
+- **Dynamic rules** (Stage 2): загружаются из rules DB и исполняются QueryEngine
 
-### 2) Подготовка H2 файла базы
-Положите файл базы рядом с `pom.xml`.
+---
 
-Пример для URL `jdbc:h2:file:./transaction`:
-- файл должен называться `transaction.mv.db`
+## API
 
-Если файл называется иначе, поменяйте URL в `application.yml` на соответствующий.
+### Swagger / OpenAPI
+- Swagger UI: `/swagger-ui/index.html`
+- OpenAPI JSON: `/v3/api-docs`
 
-### 3) Настройки приложения
-`src/main/resources/application.yml` содержит подключение в read-only режиме:
+---
 
-- `ACCESS_MODE_DATA=r`
+### Получение рекомендаций
+`GET /recommendation/{userId}`
 
-Логин и пароль не используются (пустые значения).
+Возвращает рекомендации по фиксированным и динамическим правилам.
 
-### 4) Запуск
-Через IntelliJ:
-- Maven Tool Window → Lifecycle → `test`
-- затем запустить `StarBankRecommendationApplication`
+---
 
-Или командой (если Maven есть в PATH):
-```bash
-mvn clean test
-mvn spring-boot:run
+### Управление динамическими правилами
+
+#### Создать правило
+`POST /rule`
+
+Тело запроса:
+```json
+{
+  "product_name": "Кредитная карта",
+  "product_id": "11111111-1111-1111-1111-111111111111",
+  "product_text": "Оформите кредитную карту с льготным периодом до 120 дней",
+  "rule": [
+    {
+      "query": "USER_OF",
+      "arguments": ["DEBIT"],
+      "negate": false
+    }
+  ]
+}
