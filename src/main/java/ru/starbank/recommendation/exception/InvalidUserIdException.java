@@ -1,4 +1,4 @@
-package ru.starbank.recommendation.support.exception;
+package ru.starbank.recommendation.exception;
 
 /**
  * Exception thrown when user_id cannot be parsed as UUID.

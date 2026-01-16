@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
+import ru.starbank.recommendation.exception.InvalidRuleArgumentsException;
 
 import java.util.List;
 import java.util.Objects;
@@ -26,17 +27,24 @@ public class QueryArgumentsParser {
         try {
             return objectMapper.readValue(argumentsJson, STRING_LIST_TYPE);
         } catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("Некорректный формат arguments (ожидался JSON-массив строк): " + argumentsJson, e);
+            throw new InvalidRuleArgumentsException(
+                    "Некорректный формат arguments (ожидался JSON-массив строк): " + argumentsJson,
+                    e
+            );
         }
     }
 
     public String requireAt(List<String> args, int index, String name) {
         if (args.size() <= index) {
-            throw new IllegalArgumentException("Не хватает arguments: требуется " + name + " на позиции " + index);
+            throw new InvalidRuleArgumentsException(
+                    "Не хватает arguments: требуется " + name + " на позиции " + index
+            );
         }
         String value = args.get(index);
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("Пустой argument: " + name);
+            throw new InvalidRuleArgumentsException(
+                    "Пустой argument: " + name
+            );
         }
         return value;
     }
