@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +19,7 @@ import ru.starbank.recommendation.repository.RuleRepository;
  */
 @Service
 public class DynamicRulesRecommendationService {
+    private static final Logger log = LoggerFactory.getLogger(DynamicRulesRecommendationService.class);
 
     private final RuleRepository ruleRepository;
     private final QueryEngine queryEngine;
@@ -35,9 +38,11 @@ public class DynamicRulesRecommendationService {
     public List<RecommendationDto> getDynamicRecommendations(UUID userId) {
         List<RuleEntity> rules = ruleRepository.findAllWithQueries();
         if (rules.isEmpty()) {
+            log.debug("No dynamic rules found. user_id={}", userId);
             return List.of();
         }
 
+        int matchedCount = 0;
         List<RecommendationDto> result = new ArrayList<>();
 
         for (RuleEntity rule : rules) {
@@ -45,11 +50,14 @@ public class DynamicRulesRecommendationService {
                                   .allMatch(q -> queryEngine.evaluate(userId, q));
 
             if (matched) {
+                matchedCount++;
                 UUID productUuid = parseProductId(rule.getProductId());
                 result.add(new RecommendationDto(productUuid, rule.getProductName(), rule.getProductText()));
             }
         }
 
+        log.info("Dynamic rules evaluated: user_id={}, rules={}, matched={}, recommendations={}",
+                userId, rules.size(), matchedCount, result.size());
         return result;
     }
 

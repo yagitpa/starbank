@@ -3,6 +3,8 @@ package ru.starbank.recommendation.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.starbank.recommendation.domain.dto.rule.CreateRuleRequestDto;
@@ -23,7 +25,7 @@ import java.util.List;
  */
 @Service
 public class RuleService {
-
+    private static final Logger log = LoggerFactory.getLogger(RuleService.class);
     private static final TypeReference<List<String>> STRING_LIST_TYPE = new TypeReference<>() {};
 
     private final RuleRepository ruleRepository;
@@ -39,6 +41,9 @@ public class RuleService {
      */
     @Transactional(transactionManager = "rulesTransactionManager")
     public RuleDto createRule(CreateRuleRequestDto request) {
+        log.info("Creating dynamic rule: product_id={}, product_name={}, queries={}",
+                request.productId(), request.productName(), request.rule().size());
+
         RuleEntity entity = new RuleEntity(
                 request.productName(),
                 request.productId(),
@@ -56,6 +61,7 @@ public class RuleService {
         }
 
         RuleEntity saved = ruleRepository.save(entity);
+        log.info("Dynamic rule created: id={}, product_id={}", saved.getId(), saved.getProductId());
         return toDto(saved);
     }
 
@@ -70,6 +76,7 @@ public class RuleService {
                                            .map(this::toDto)
                                            .toList();
 
+        log.debug("Loaded dynamic rules: count={}", data.size());
         return new RuleListResponseDto(data);
     }
 
@@ -79,10 +86,14 @@ public class RuleService {
      */
     @Transactional(transactionManager = "rulesTransactionManager")
     public void deleteRule(long id) {
+        log.info("Deleting dynamic rule: id={}", id);
+
         if (!ruleRepository.existsById(id)) {
             throw new IllegalArgumentException("Правило с id=" + id + " не найдено");
         }
+
         ruleRepository.deleteById(id);
+        log.info("Dynamic rule deleted: id={}", id);
     }
 
     // -------------------- Mapping --------------------
