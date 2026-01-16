@@ -1,5 +1,6 @@
 package ru.starbank.recommendation.api;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,7 @@ import ru.starbank.recommendation.service.RuleService;
  * <p>Контроллер "тонкий": только HTTP-слой (приём/возврат данных).
  * Вся бизнес-логика находится в {@link RuleService}.</p>
  */
+@Tag(name = "Rules", description = "Управление динамическими правилами рекомендаций")
 @RestController
 @RequestMapping("/rule")
 public class RuleController {
