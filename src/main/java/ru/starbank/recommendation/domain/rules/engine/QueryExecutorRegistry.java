@@ -2,6 +2,7 @@ package ru.starbank.recommendation.domain.rules.engine;
 
 import org.springframework.stereotype.Component;
 import ru.starbank.recommendation.domain.rules.entity.QueryType;
+import ru.starbank.recommendation.exception.UnsupportedQueryTypeException;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -27,7 +28,7 @@ public class QueryExecutorRegistry {
     public QueryExecutor getExecutor(QueryType type) {
         QueryExecutor executor = executors.get(type);
         if (executor == null) {
-            throw new IllegalStateException("Нет исполнителя для QueryType=" + type);
+            throw new UnsupportedQueryTypeException(type);
         }
         return executor;
     }

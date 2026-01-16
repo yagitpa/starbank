@@ -13,6 +13,7 @@ import ru.starbank.recommendation.domain.dto.rule.RuleListResponseDto;
 import ru.starbank.recommendation.domain.dto.rule.RuleQueryDto;
 import ru.starbank.recommendation.domain.rules.entity.RuleEntity;
 import ru.starbank.recommendation.domain.rules.entity.RuleQueryEntity;
+import ru.starbank.recommendation.exception.RuleNotFoundException;
 import ru.starbank.recommendation.repository.RuleRepository;
 
 import java.util.List;
@@ -89,12 +90,13 @@ public class RuleService {
         log.info("Deleting dynamic rule: id={}", id);
 
         if (!ruleRepository.existsById(id)) {
-            throw new IllegalArgumentException("Правило с id=" + id + " не найдено");
+            throw new RuleNotFoundException(id);
         }
 
         ruleRepository.deleteById(id);
         log.info("Dynamic rule deleted: id={}", id);
     }
+
 
     // -------------------- Mapping --------------------
 

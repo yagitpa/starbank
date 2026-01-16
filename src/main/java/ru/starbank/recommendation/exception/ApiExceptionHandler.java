@@ -1,15 +1,13 @@
-package ru.starbank.recommendation.support.exception;
+package ru.starbank.recommendation.exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import ru.starbank.recommendation.exception.ErrorResponse;
-import ru.starbank.recommendation.exception.ValidationErrorResponse;
 
 /**
  * Глобальный обработчик исключений для всех контроллеров.
@@ -29,43 +27,61 @@ public class ApiExceptionHandler {
      */
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<ErrorResponse> handleDatabaseException(DataAccessException ex) {
-        // Логируем ошибку с полным стэком
         log.error("Ошибка при обращении к базе данных", ex);
-
-        // Возвращаем HTTP 500 с ошибкой
         ErrorResponse errorResponse = new ErrorResponse("Ошибка при обращении к базе данных.");
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
-     * Обработка ошибок при отсутствии пользователя.
-     * Логируем и возвращаем HTTP статус 404.
-     *
-     * @param ex исключение, когда не найден пользователь
-     * @return ResponseEntity с сообщением об ошибке
+     * Обработка ошибки невалидного userId (например, некорректный UUID в UuidParser).
      */
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleUserNotFoundException(UserNotFoundException ex) {
-        log.warn("Пользователь не найден: ", ex);
-        ErrorResponse errorResponse = new ErrorResponse("Пользователь не найден.");
+    @ExceptionHandler(InvalidUserIdException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidUserIdException(InvalidUserIdException ex) {
+        log.warn("Некорректный userId: {}", ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Обработка ошибки "правило не найдено".
+     */
+    @ExceptionHandler(RuleNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleRuleNotFoundException(RuleNotFoundException ex) {
+        log.warn("Динамическое правило не найдено: {}", ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     /**
-     * Обработка ошибок валидации данных.
-     * Логируем и возвращаем HTTP статус 400.
+     * Обработка ошибок некорректных аргументов правила/движка.
+     * Это ошибки запроса/данных, поэтому возвращаем 400.
+     */
+    @ExceptionHandler({
+            InvalidRuleArgumentsException.class,
+            InvalidProductIdException.class,
+            UnsupportedQueryTypeException.class
+    })
+    public ResponseEntity<ErrorResponse> handleBadRequestRuntime(RuntimeException ex) {
+        log.warn("Ошибка запроса: {}", ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Обработка ошибок валидации данных (@Valid).
+     * Возвращаем HTTP 400 с деталями.
      *
      * @param ex исключение, вызванное ошибками валидации
      * @return ResponseEntity с сообщением об ошибке
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ValidationErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        log.warn("Ошибка валидации входных данных: ", ex);
+        log.warn("Ошибка валидации входных данных", ex);
 
-        // Формируем подробный ответ с ошибками валидации
         ValidationErrorResponse errorResponse = new ValidationErrorResponse("Ошибка валидации данных.");
         ex.getBindingResult().getAllErrors().forEach(error -> {
-            errorResponse.addError(error.getDefaultMessage());
+            String message = error.getDefaultMessage();
+            errorResponse.addError(message != null ? message : "Некорректное значение");
         });
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
@@ -80,10 +96,7 @@ public class ApiExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        // Логируем любые другие ошибки
         log.error("Неизвестная ошибка", ex);
-
-        // Возвращаем HTTP 500 с ошибкой
         ErrorResponse errorResponse = new ErrorResponse("Неизвестная ошибка.");
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }

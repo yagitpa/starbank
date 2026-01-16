@@ -2,7 +2,7 @@ package ru.starbank.recommendation.support.util;
 
 import java.util.UUID;
 
-import ru.starbank.recommendation.support.exception.InvalidUserIdException;
+import ru.starbank.recommendation.exception.InvalidUserIdException;
 
 /**
  * Utility for parsing UUID from API input.

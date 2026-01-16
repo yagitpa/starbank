@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.starbank.recommendation.domain.dto.RecommendationDto;
 import ru.starbank.recommendation.domain.rules.engine.QueryEngine;
 import ru.starbank.recommendation.domain.rules.entity.RuleEntity;
+import ru.starbank.recommendation.exception.InvalidProductIdException;
 import ru.starbank.recommendation.repository.RuleRepository;
 
 /**
@@ -65,9 +66,7 @@ public class DynamicRulesRecommendationService {
         try {
             return UUID.fromString(productId);
         } catch (Exception e) {
-            throw new IllegalArgumentException(
-                    "Некорректный product_id в динамическом правиле. Ожидался UUID, получено: " + productId, e
-            );
+            throw new InvalidProductIdException(productId, e);
         }
     }
 }
