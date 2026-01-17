@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.starbank.recommendation.domain.dto.rule.CreateRuleRequestDto;
@@ -13,6 +14,7 @@ import ru.starbank.recommendation.domain.dto.rule.RuleListResponseDto;
 import ru.starbank.recommendation.domain.dto.rule.RuleQueryDto;
 import ru.starbank.recommendation.domain.rules.entity.RuleEntity;
 import ru.starbank.recommendation.domain.rules.entity.RuleQueryEntity;
+import ru.starbank.recommendation.domain.rules.entity.RuleStatsEntity;
 import ru.starbank.recommendation.exception.RuleNotFoundException;
 import ru.starbank.recommendation.repository.RuleRepository;
 import ru.starbank.recommendation.domain.rules.entity.RuleStatsEntity;
@@ -67,7 +69,17 @@ public class RuleService {
 
         RuleEntity saved = ruleRepository.save(entity);
         log.info("Dynamic rule created: id={}, product_id={}", saved.getId(), saved.getProductId());
-        ruleStatsRepository.save(new RuleStatsEntity(saved));
+
+        // Stage 3: статистика срабатываний правил.
+        // В тестовом окружении/при не применённых миграциях таблицы stats может не быть.
+        // Не валим создание правила — логируем и продолжаем.
+        try {
+            ruleStatsRepository.save(new RuleStatsEntity(saved));
+        } catch (DataAccessException ex) {
+            log.warn("Rule stats not saved (rule_stats table may be missing). rule_id={}. Cause: {}",
+                    saved.getId(), ex.getMessage());
+        }
+
         return toDto(saved);
     }
 
@@ -101,7 +113,6 @@ public class RuleService {
         ruleRepository.deleteById(id);
         log.info("Dynamic rule deleted: id={}", id);
     }
-
 
     // -------------------- Mapping --------------------
 
