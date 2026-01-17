@@ -1,9 +1,9 @@
 package ru.starbank.recommendation.domain.dto.rule;
 
 /**
- * Элемент статистики срабатываний правила.
+ * DTO элемента статистики срабатываний динамического правила.
  *
- * <p>В ТЗ поля называются rule_id и count, и в примере они строками.</p>
+ * <p>Формат строго соответствует ТЗ Stage 3.</p>
  */
 public record RuleStatDto(
         String rule_id,

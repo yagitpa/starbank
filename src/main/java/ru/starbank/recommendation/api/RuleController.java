@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.starbank.recommendation.domain.dto.rule.CreateRuleRequestDto;
 import ru.starbank.recommendation.domain.dto.rule.RuleDto;
 import ru.starbank.recommendation.domain.dto.rule.RuleListResponseDto;
+import ru.starbank.recommendation.domain.dto.rule.RuleStatsResponseDto;
 import ru.starbank.recommendation.service.RuleService;
+import ru.starbank.recommendation.service.RuleStatsService;
 
 /**
  * REST API управления динамическими правилами рекомендаций.
@@ -28,9 +30,11 @@ import ru.starbank.recommendation.service.RuleService;
 public class RuleController {
 
     private final RuleService ruleService;
+    private final RuleStatsService ruleStatsService;
 
-    public RuleController(RuleService ruleService) {
+    public RuleController(RuleService ruleService, RuleStatsService ruleStatsService) {
         this.ruleService = ruleService;
+        this.ruleStatsService = ruleStatsService;
     }
 
     /**
@@ -63,5 +67,15 @@ public class RuleController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteRule(@PathVariable("id") long id) {
         ruleService.deleteRule(id);
+    }
+
+    /**
+     * Возвращает статистику срабатываний по всем динамическим правилам.
+     *
+     * @return { "stats": [ ... ] }
+     */
+    @GetMapping("/stats")
+    public RuleStatsResponseDto getRuleStats() {
+        return ruleStatsService.getStats();
     }
 }
