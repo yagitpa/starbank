@@ -39,13 +39,17 @@ public class RuleStatsService {
     }
 
     /**
-     * Возвращает статистику по всем правилам (включая count=0).
+     * Возвращает статистику по всем правилам, включая те,
+     * по которым ещё не было срабатываний (count = 0).
      */
     @Transactional(readOnly = true, transactionManager = "rulesTransactionManager")
     public RuleStatsResponseDto getStats() {
         List<RuleStatDto> stats = ruleStatsRepository.findAllRuleStats()
                                                      .stream()
-                                                     .map(p -> new RuleStatDto(String.valueOf(p.getRuleId()), String.valueOf(p.getCount())))
+                                                     .map(p -> new RuleStatDto(
+                                                             String.valueOf(p.getRuleId()),
+                                                             String.valueOf(p.getCount())
+                                                     ))
                                                      .toList();
 
         return new RuleStatsResponseDto(stats);
