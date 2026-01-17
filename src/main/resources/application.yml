@@ -28,6 +28,12 @@ spring:
       enabled: true
       path: /h2-console
 
+  telegram:
+    bot:
+      token: ${TELEGRAM_BOT_TOKEN:}
+      username: ${TELEGRAM_BOT_USERNAME:Recommendations100500Bot}
+
+
 logging:
   level:
     root: INFO
