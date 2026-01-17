@@ -15,6 +15,8 @@ import ru.starbank.recommendation.domain.rules.entity.RuleEntity;
 import ru.starbank.recommendation.domain.rules.entity.RuleQueryEntity;
 import ru.starbank.recommendation.exception.RuleNotFoundException;
 import ru.starbank.recommendation.repository.RuleRepository;
+import ru.starbank.recommendation.domain.rules.entity.RuleStatsEntity;
+import ru.starbank.recommendation.repository.RuleStatsRepository;
 
 import java.util.List;
 
@@ -31,10 +33,12 @@ public class RuleService {
 
     private final RuleRepository ruleRepository;
     private final ObjectMapper objectMapper;
+    private final RuleStatsRepository ruleStatsRepository;
 
-    public RuleService(RuleRepository ruleRepository, ObjectMapper objectMapper) {
+    public RuleService(RuleRepository ruleRepository, ObjectMapper objectMapper, RuleStatsRepository ruleStatsRepository) {
         this.ruleRepository = ruleRepository;
         this.objectMapper = objectMapper;
+        this.ruleStatsRepository = ruleStatsRepository;
     }
 
     /**
@@ -63,6 +67,7 @@ public class RuleService {
 
         RuleEntity saved = ruleRepository.save(entity);
         log.info("Dynamic rule created: id={}, product_id={}", saved.getId(), saved.getProductId());
+        ruleStatsRepository.save(new RuleStatsEntity(saved));
         return toDto(saved);
     }
 

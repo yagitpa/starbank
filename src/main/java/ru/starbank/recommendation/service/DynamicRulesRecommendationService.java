@@ -23,16 +23,25 @@ public class DynamicRulesRecommendationService {
 
     private final RuleRepository ruleRepository;
     private final QueryEngine queryEngine;
+    private final RuleStatsService ruleStatsService;
 
-    public DynamicRulesRecommendationService(RuleRepository ruleRepository, QueryEngine queryEngine) {
+    public DynamicRulesRecommendationService(
+            RuleRepository ruleRepository,
+            QueryEngine queryEngine,
+            RuleStatsService ruleStatsService
+    ) {
         this.ruleRepository = ruleRepository;
         this.queryEngine = queryEngine;
+        this.ruleStatsService = ruleStatsService;
     }
 
     /**
      * Возвращает список рекомендаций, полученных из динамических правил.
      *
      * <p>AND-логика: правило считается выполненным, если ВСЕ его queries истинны.</p>
+     *
+     * <p>Важно: инкремент статистики выполняется в отдельной транзакции (см. RuleStatsService),
+     * поэтому метод остаётся readOnly.</p>
      */
     @Transactional(readOnly = true, transactionManager = "rulesTransactionManager")
     public List<RecommendationDto> getDynamicRecommendations(UUID userId) {
@@ -51,6 +60,10 @@ public class DynamicRulesRecommendationService {
 
             if (matched) {
                 matchedCount++;
+
+                // Статистика: при успешном срабатывании правила увеличиваем счётчик на 1 (атомарно)
+                ruleStatsService.increment(rule.getId());
+
                 UUID productUuid = parseProductId(rule.getProductId());
                 result.add(new RecommendationDto(productUuid, rule.getProductName(), rule.getProductText()));
             }
