@@ -1,5 +1,7 @@
 package ru.starbank.recommendation.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -17,11 +19,16 @@ import java.util.Objects;
  * Telegram Bot (Stage 3).
  *
  * <p>Поддерживает команды:
- *   - /recommend &lt;username&gt;
- *   - /start (приветствие и справка)</p>
+ * <ul>
+ *     <li>/start — приветствие и справка</li>
+ *     <li>/recommend &lt;username&gt; — рекомендации для пользователя</li>
+ * </ul>
+ * </p>
  */
 @Service
 public class TelegramBotService extends TelegramLongPollingBot {
+
+    private static final Logger log = LoggerFactory.getLogger(TelegramBotService.class);
 
     private final RecommendationService recommendationService;
     private final UserLookupRepository userLookupRepository;
@@ -57,19 +64,17 @@ public class TelegramBotService extends TelegramLongPollingBot {
         String text = update.getMessage().getText().trim();
         Long chatId = update.getMessage().getChatId();
 
-        // Обработка команды "/recommend" (если она есть)
-        if (text.startsWith("/recommend")) {
-            handleRecommendCommand(chatId, text);
-            return;
-        }
-
-        // Если команда "/start" или любое другое сообщение
         if ("/start".equals(text)) {
             sendHelpMessage(chatId);
             return;
         }
 
-        // Остальные сообщения пока игнорируем
+        if (text.startsWith("/recommend")) {
+            handleRecommendCommand(chatId, text);
+            return;
+        }
+
+        // Неизвестные сообщения/команды
         sendMessage(chatId, "Команда не распознана. Используйте /start для справки.");
     }
 
@@ -91,7 +96,18 @@ public class TelegramBotService extends TelegramLongPollingBot {
         }
 
         UserLookupRepository.BankUserRow user = users.get(0);
-        RecommendationResponseDto response = recommendationService.getRecommendations(user.id());
+
+        log.info("Bot: recommendations requested. chat_id={}, username={}, user_id={}",
+                chatId, username, user.id());
+
+        RecommendationResponseDto response;
+        try {
+            response = recommendationService.getRecommendations(user.id());
+        } catch (Exception e) {
+            log.error("Bot: error while getting recommendations. chat_id={}, user_id={}", chatId, user.id(), e);
+            sendMessage(chatId, "Ошибка при получении рекомендаций, попробуйте позже.");
+            return;
+        }
 
         String message = formatRecommendationsMessage(user.firstName(), user.lastName(), response.recommendations());
         sendMessage(chatId, message);
@@ -122,26 +138,18 @@ public class TelegramBotService extends TelegramLongPollingBot {
             sb.append("• ").append(r.name()).append("\n");
         }
 
-        // Если рекомендаций нет — просто вернём заголовки без списка (масcив может быть пустым).
         return sb.toString().trim();
     }
 
-    /**
-     * Отправляем сообщение в Telegram.
-     */
     private void sendMessage(Long chatId, String text) {
         SendMessage message = new SendMessage(chatId.toString(), text);
         try {
             execute(message);
         } catch (TelegramApiException e) {
-            // Stage 3 PoC: не валим приложение
-            e.printStackTrace();
+            log.error("Bot: failed to send message. chat_id={}", chatId, e);
         }
     }
 
-    /**
-     * Отправляем приветственное сообщение со справкой.
-     */
     private void sendHelpMessage(Long chatId) {
         String welcomeMessage = "Здравствуйте! Я ваш виртуальный помощник.\n\n";
         String helpMessage = "Доступные команды:\n" +
