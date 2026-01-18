@@ -17,6 +17,7 @@ import ru.starbank.recommendation.domain.rules.entity.RuleQueryEntity;
 import ru.starbank.recommendation.domain.rules.entity.RuleStatsEntity;
 import ru.starbank.recommendation.exception.RuleNotFoundException;
 import ru.starbank.recommendation.repository.RuleRepository;
+import ru.starbank.recommendation.domain.rules.entity.RuleStatsEntity;
 import ru.starbank.recommendation.repository.RuleStatsRepository;
 
 import java.util.List;
