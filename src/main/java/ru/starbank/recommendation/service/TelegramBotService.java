@@ -16,7 +16,9 @@ import java.util.Objects;
 /**
  * Telegram Bot (Stage 3).
  *
- * <p>Поддерживает команду: /recommend &lt;username&gt;</p>
+ * <p>Поддерживает команды:
+ *   - /recommend &lt;username&gt;
+ *   - /start (приветствие и справка)</p>
  */
 @Service
 public class TelegramBotService extends TelegramLongPollingBot {
@@ -55,13 +57,20 @@ public class TelegramBotService extends TelegramLongPollingBot {
         String text = update.getMessage().getText().trim();
         Long chatId = update.getMessage().getChatId();
 
-        // Единственная команда по ТЗ: /recommend username
+        // Обработка команды "/recommend" (если она есть)
         if (text.startsWith("/recommend")) {
             handleRecommendCommand(chatId, text);
             return;
         }
 
+        // Если команда "/start" или любое другое сообщение
+        if ("/start".equals(text)) {
+            sendHelpMessage(chatId);
+            return;
+        }
+
         // Остальные сообщения пока игнорируем
+        sendMessage(chatId, "Команда не распознана. Используйте /start для справки.");
     }
 
     private void handleRecommendCommand(Long chatId, String text) {
@@ -117,6 +126,9 @@ public class TelegramBotService extends TelegramLongPollingBot {
         return sb.toString().trim();
     }
 
+    /**
+     * Отправляем сообщение в Telegram.
+     */
     private void sendMessage(Long chatId, String text) {
         SendMessage message = new SendMessage(chatId.toString(), text);
         try {
@@ -125,5 +137,16 @@ public class TelegramBotService extends TelegramLongPollingBot {
             // Stage 3 PoC: не валим приложение
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Отправляем приветственное сообщение со справкой.
+     */
+    private void sendHelpMessage(Long chatId) {
+        String welcomeMessage = "Здравствуйте! Я ваш виртуальный помощник.\n\n";
+        String helpMessage = "Доступные команды:\n" +
+                "/recommend <username> — получите рекомендации для пользователя.\n\n" +
+                "Просто напишите мне команду!";
+        sendMessage(chatId, welcomeMessage + helpMessage);
     }
 }
