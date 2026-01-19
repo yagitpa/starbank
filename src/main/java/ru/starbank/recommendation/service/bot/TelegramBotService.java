@@ -1,4 +1,4 @@
-package ru.starbank.recommendation.service;
+package ru.starbank.recommendation.service.bot;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,22 +8,28 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ru.starbank.recommendation.domain.bot.TelegramCommand;
+import ru.starbank.recommendation.domain.bot.TelegramCommandParser;
+import ru.starbank.recommendation.domain.bot.TelegramRateLimiter;
 import ru.starbank.recommendation.domain.dto.RecommendationDto;
 import ru.starbank.recommendation.domain.dto.RecommendationResponseDto;
 import ru.starbank.recommendation.repository.UserLookupRepository;
+import ru.starbank.recommendation.service.RecommendationService;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Telegram Bot (Stage 3).
  *
- * <p>Поддерживает команды:
- * <ul>
- *     <li>/start — приветствие и справка</li>
- *     <li>/recommend &lt;username&gt; — рекомендации для пользователя</li>
- * </ul>
- * </p>
+ * Команды:
+ * - /start — приветствие и справка
+ * - /recommend <username> — рекомендации
+ *
+ * Требования ТЗ:
+ * - если 0 или >1 пользователей — строго "Пользователь не найден"
+ * - успешный ответ содержит "Здравствуйте <Имя Фамилия>" и "Новые продукты для вас:"
  */
 @Service
 public class TelegramBotService extends TelegramLongPollingBot {
@@ -32,6 +38,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
 
     private final RecommendationService recommendationService;
     private final UserLookupRepository userLookupRepository;
+    private final TelegramRateLimiter rateLimiter;
 
     @Value("${telegram.bot.token}")
     private String botToken;
@@ -40,9 +47,11 @@ public class TelegramBotService extends TelegramLongPollingBot {
     private String botUsername;
 
     public TelegramBotService(RecommendationService recommendationService,
-                              UserLookupRepository userLookupRepository) {
+                              UserLookupRepository userLookupRepository,
+                              TelegramRateLimiter rateLimiter) {
         this.recommendationService = Objects.requireNonNull(recommendationService, "recommendationService must not be null");
         this.userLookupRepository = Objects.requireNonNull(userLookupRepository, "userLookupRepository must not be null");
+        this.rateLimiter = Objects.requireNonNull(rateLimiter, "rateLimiter must not be null");
     }
 
     @Override
@@ -61,33 +70,45 @@ public class TelegramBotService extends TelegramLongPollingBot {
             return;
         }
 
-        String text = update.getMessage().getText().trim();
         Long chatId = update.getMessage().getChatId();
+        String rawText = update.getMessage().getText();
 
-        if ("/start".equals(text)) {
-            sendHelpMessage(chatId);
+        // Rate-limit только на команды/текстовые сообщения
+        if (!rateLimiter.tryAcquire(chatId)) {
+            // Молчаливое ограничение (не спамим ответами).
+            log.debug("Bot: rate limit exceeded. chat_id={}", chatId);
             return;
         }
 
-        if (text.startsWith("/recommend")) {
-            handleRecommendCommand(chatId, text);
+        TelegramCommandParser parser = new TelegramCommandParser(getBotUsername());
+        Optional<TelegramCommand> cmdOpt = parser.parse(rawText);
+
+        if (cmdOpt.isEmpty()) {
+            // Не команда — по PoC подскажем как пользоваться
+            sendMessage(chatId, "Команда не распознана. Используйте /start для справки.");
             return;
         }
 
-        // Неизвестные сообщения/команды
-        sendMessage(chatId, "Команда не распознана. Используйте /start для справки.");
+        TelegramCommand cmd = cmdOpt.get();
+        switch (cmd.name()) {
+            case "start" -> sendHelpMessage(chatId);
+            case "recommend" -> handleRecommendCommand(chatId, cmd.argument());
+            default -> sendMessage(chatId, "Команда не распознана. Используйте /start для справки.");
+        }
     }
 
-    private void handleRecommendCommand(Long chatId, String text) {
-        String username = extractUsername(text);
-
-        if (username == null || username.isBlank()) {
+    private void handleRecommendCommand(Long chatId, String usernameArg) {
+        if (usernameArg == null || usernameArg.isBlank()) {
+            // По ТЗ: если не можем определить пользователя — "Пользователь не найден"
             sendMessage(chatId, "Пользователь не найден");
             return;
         }
 
+        String username = usernameArg.trim();
+
         List<UserLookupRepository.BankUserRow> users = userLookupRepository.findByUsername(username);
 
+        // По ТЗ: 0 результатов -> "Пользователь не найден", >1 -> тоже "Пользователь не найден"
         if (users.size() != 1) {
             sendMessage(chatId, "Пользователь не найден");
             return;
@@ -95,8 +116,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
 
         UserLookupRepository.BankUserRow user = users.get(0);
 
-        log.info("Bot: recommendations requested. chat_id={}, username={}, user_id={}",
-                chatId, username, user.id());
+        log.info("Bot: /recommend. chat_id={}, username={}, user_id={}", chatId, username, user.id());
 
         RecommendationResponseDto response;
         try {
@@ -109,15 +129,6 @@ public class TelegramBotService extends TelegramLongPollingBot {
 
         String message = formatRecommendationsMessage(user.firstName(), user.lastName(), response.recommendations());
         sendMessage(chatId, message);
-    }
-
-    private String extractUsername(String text) {
-        // Ожидаем формат: /recommend username
-        String[] parts = text.split("\\s+", 2);
-        if (parts.length < 2) {
-            return null;
-        }
-        return parts[1].trim();
     }
 
     private String formatRecommendationsMessage(String firstName, String lastName, List<RecommendationDto> recommendations) {
@@ -139,6 +150,14 @@ public class TelegramBotService extends TelegramLongPollingBot {
         return sb.toString().trim();
     }
 
+    private void sendHelpMessage(Long chatId) {
+        String welcomeMessage = "Здравствуйте! Я ваш виртуальный помощник.\n\n";
+        String helpMessage = "Доступные команды:\n" +
+                "/recommend <username> — получите рекомендации для пользователя.\n\n" +
+                "Просто напишите мне команду!";
+        sendMessage(chatId, welcomeMessage + helpMessage);
+    }
+
     private void sendMessage(Long chatId, String text) {
         SendMessage message = new SendMessage(chatId.toString(), text);
         try {
@@ -146,13 +165,5 @@ public class TelegramBotService extends TelegramLongPollingBot {
         } catch (TelegramApiException e) {
             log.error("Bot: failed to send message. chat_id={}", chatId, e);
         }
-    }
-
-    private void sendHelpMessage(Long chatId) {
-        String welcomeMessage = "Здравствуйте! Я ваш виртуальный помощник.\n\n";
-        String helpMessage = "Доступные команды:\n" +
-                "/recommend <username> — получите рекомендации для пользователя.\n\n" +
-                "Просто напишите мне команду!";
-        sendMessage(chatId, welcomeMessage + helpMessage);
     }
 }
