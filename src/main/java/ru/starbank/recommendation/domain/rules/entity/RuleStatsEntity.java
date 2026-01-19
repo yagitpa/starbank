@@ -17,10 +17,10 @@ import java.util.Objects;
 /**
  * Статистика срабатываний динамического правила.
  *
- * <p>
- * PK таблицы — rule_id.
- * equals/hashCode реализованы вручную по рекомендациям Hibernate.
- * </p>
+ * <p>PK таблицы — rule_id. Он совпадает с id правила (RuleEntity).</p>
+ *
+ * <p><b>Важно для JPA:</b> при использовании {@link MapsId} нельзя вручную выставлять id (ruleId)
+ * до persist, иначе Spring Data может выполнить merge/update вместо insert.(Отловлено на тестах)</p>
  */
 @Entity
 @Getter
@@ -45,8 +45,8 @@ public class RuleStatsEntity {
     }
 
     public RuleStatsEntity(RuleEntity rule) {
-        this.rule = rule;
-        this.ruleId = rule.getId();
+        this.rule = Objects.requireNonNull(rule, "rule must not be null");
+        // ruleId НЕ выставляем вручную — его заполнит @MapsId при persist
         this.count = 0L;
     }
 
