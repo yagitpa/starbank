@@ -40,7 +40,7 @@ public interface RuleStatsRepository extends JpaRepository<RuleStatsEntity, Long
      * Проекция для native-запроса статистики.
      */
     interface RuleStatProjection {
-        Long getRuleId();
-        Long getCount();
+        Long ruleId();
+        Long count();
     }
 }

@@ -114,6 +114,7 @@ databaseChangeLog:
             constraintName: fk_rule_stats_rule_id
             onDelete: CASCADE
 
+        # Backfill: для уже существующих правил создаём статистику со значением 0
         - sql:
             splitStatements: false
             sql: |
