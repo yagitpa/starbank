@@ -82,12 +82,14 @@ public class TelegramBotService extends TelegramLongPollingBot {
         String username = extractUsername(text);
 
         if (username == null || username.isBlank()) {
+            // ТЗ строго требует фразу для сценария "не найден" (и при ошибочной команде тоже).
             sendMessage(chatId, "Пользователь не найден");
             return;
         }
 
         List<UserLookupRepository.BankUserRow> users = userLookupRepository.findByUsername(username);
 
+        // По ТЗ: 0 результатов -> "Пользователь не найден", >1 -> тоже "Пользователь не найден"
         if (users.size() != 1) {
             sendMessage(chatId, "Пользователь не найден");
             return;
