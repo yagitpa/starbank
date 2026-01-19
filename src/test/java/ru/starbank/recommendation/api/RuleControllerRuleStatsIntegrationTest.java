@@ -16,7 +16,9 @@ import java.util.UUID;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Stage 3: интеграционный тест эндпойнта GET /rule/stats (RuleController).
@@ -26,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * - GET /rule/stats возвращает ВСЕ правила
  * - для новых правил count = "0"
  */
-@SpringBootTest
+@SpringBootTest(properties = "telegram.bot.enabled=false")
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 public class RuleControllerRuleStatsIntegrationTest {
