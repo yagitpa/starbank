@@ -2,29 +2,42 @@ package ru.starbank.recommendation.domain.bot;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Component;
+import ru.starbank.recommendation.config.bot.TelegramBotProperties;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Objects;
 
 /**
- * Простой rate-limit для Telegram-бота на уровне chatId.
+ * Rate-limit для Telegram-бота на уровне chatId.
  *
- * Ограничения:
- * - не чаще 1 команды в 1 секунду (антиспам/дребезг)
- * - не более 20 команд за 1 минуту на chatId
+ * Настройки берутся из {@link TelegramBotProperties}.
  */
 @Component
 public class TelegramRateLimiter {
 
-    private static final Duration COOLDOWN = Duration.ofSeconds(1);
-    private static final Duration WINDOW = Duration.ofMinutes(1);
-    private static final int MAX_PER_WINDOW = 20;
+    private final Duration cooldown;
+    private final Duration window;
+    private final int maxPerWindow;
 
-    private final Cache<Long, WindowState> stateCache = Caffeine.newBuilder()
-                                                                .expireAfterAccess(WINDOW.plusSeconds(30)) // чтобы память не росла
-                                                                .maximumSize(10_000)
-                                                                .build();
+    private final Cache<Long, WindowState> stateCache;
+
+    public TelegramRateLimiter(TelegramBotProperties properties) {
+        Objects.requireNonNull(properties, "properties must not be null");
+
+        TelegramBotProperties.RateLimit rl = properties.getRateLimit();
+
+        this.cooldown = Duration.ofMillis(rl.getCooldownMs());
+        this.window = Duration.ofMillis(rl.getWindowMs());
+        this.maxPerWindow = rl.getMaxPerWindow();
+
+        this.stateCache = Caffeine.newBuilder()
+                                  .expireAfterAccess(Duration.ofMillis(rl.getExpireAfterAccessMs()))
+                                  .maximumSize(rl.getMaxCacheSize())
+                                  .build();
+    }
 
     /**
      * @return true если запрос разрешён, false если лимит превышен
@@ -34,19 +47,19 @@ public class TelegramRateLimiter {
 
         WindowState state = stateCache.get(chatId, id -> new WindowState(now, 0, Instant.EPOCH));
 
-        // cooldown: не чаще 1 команды/сек
+        // cooldown: не чаще 1 команды за интервал cooldown
         assert state != null;
-        if (Duration.between(state.lastAcceptedAt, now).compareTo(COOLDOWN) < 0) {
+        if (Duration.between(state.lastAcceptedAt, now).compareTo(cooldown) < 0) {
             return false;
         }
 
         // окно счётчика
-        if (Duration.between(state.windowStart, now).compareTo(WINDOW) >= 0) {
+        if (Duration.between(state.windowStart, now).compareTo(window) >= 0) {
             state.windowStart = now;
             state.count = 0;
         }
 
-        if (state.count >= MAX_PER_WINDOW) {
+        if (state.count >= maxPerWindow) {
             return false;
         }
 

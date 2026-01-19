@@ -7,7 +7,9 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import ru.starbank.recommendation.domain.bot.TelegramCommand;
 import ru.starbank.recommendation.domain.bot.TelegramCommandParser;
 import ru.starbank.recommendation.domain.bot.TelegramRateLimiter;
@@ -39,6 +41,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
     private final RecommendationService recommendationService;
     private final UserLookupRepository userLookupRepository;
     private final TelegramRateLimiter rateLimiter;
+    private final TelegramRateLimitFeedbackService rateLimitFeedbackService;
 
     @Value("${telegram.bot.token}")
     private String botToken;
@@ -48,10 +51,12 @@ public class TelegramBotService extends TelegramLongPollingBot {
 
     public TelegramBotService(RecommendationService recommendationService,
                               UserLookupRepository userLookupRepository,
-                              TelegramRateLimiter rateLimiter) {
+                              TelegramRateLimiter rateLimiter,
+                              TelegramRateLimitFeedbackService rateLimitFeedbackService) {
         this.recommendationService = Objects.requireNonNull(recommendationService, "recommendationService must not be null");
         this.userLookupRepository = Objects.requireNonNull(userLookupRepository, "userLookupRepository must not be null");
         this.rateLimiter = Objects.requireNonNull(rateLimiter, "rateLimiter must not be null");
+        this.rateLimitFeedbackService = Objects.requireNonNull(rateLimitFeedbackService, "rateLimitFeedbackService must not be null");
     }
 
     @Override
@@ -72,11 +77,21 @@ public class TelegramBotService extends TelegramLongPollingBot {
 
         Long chatId = update.getMessage().getChatId();
         String rawText = update.getMessage().getText();
+        User from = update.getMessage().getFrom();
 
-        // Rate-limit только на команды/текстовые сообщения
+        String fromUsername = (from != null) ? from.getUserName() : null;
+        Long fromId = (from != null) ? from.getId() : null;
+
+        log.debug("Bot: update received. chat_id={}, from_id={}, from_username={}, text='{}'",
+                chatId, fromId, fromUsername, rawText);
+
         if (!rateLimiter.tryAcquire(chatId)) {
-            // Молчаливое ограничение (не спамим ответами).
-            log.debug("Bot: rate limit exceeded. chat_id={}", chatId);
+            log.debug("Bot: rate limit exceeded. chat_id={}, from_id={}", chatId, fromId);
+
+            // "Мягкий" UX: предупреждаем редко, чтобы не спамить
+            if (rateLimitFeedbackService.shouldSendFeedback(chatId)) {
+                sendMessage(chatId, "Слишком часто. Подождите немного и повторите команду.");
+            }
             return;
         }
 
@@ -84,50 +99,71 @@ public class TelegramBotService extends TelegramLongPollingBot {
         Optional<TelegramCommand> cmdOpt = parser.parse(rawText);
 
         if (cmdOpt.isEmpty()) {
-            // Не команда — по PoC подскажем как пользоваться
+            log.debug("Bot: non-command message. chat_id={}, from_id={}", chatId, fromId);
             sendMessage(chatId, "Команда не распознана. Используйте /start для справки.");
             return;
         }
 
         TelegramCommand cmd = cmdOpt.get();
+        log.info("Bot: command parsed. chat_id={}, from_id={}, command={}, arg={}",
+                chatId, fromId, cmd.name(), cmd.argument());
+
         switch (cmd.name()) {
-            case "start" -> sendHelpMessage(chatId);
-            case "recommend" -> handleRecommendCommand(chatId, cmd.argument());
-            default -> sendMessage(chatId, "Команда не распознана. Используйте /start для справки.");
+            case "start" -> {
+                log.info("Bot: /start. chat_id={}, from_id={}", chatId, fromId);
+                sendHelpMessage(chatId);
+            }
+            case "recommend" -> {
+                log.info("Bot: /recommend received. chat_id={}, from_id={}, arg={}", chatId, fromId, cmd.argument());
+                handleRecommendCommand(chatId, cmd.argument(), fromId);
+            }
+            default -> {
+                log.info("Bot: unknown command. chat_id={}, from_id={}, command={}", chatId, fromId, cmd.name());
+                sendMessage(chatId, "Команда не распознана. Используйте /start для справки.");
+            }
         }
     }
 
-    private void handleRecommendCommand(Long chatId, String usernameArg) {
+    private void handleRecommendCommand(Long chatId, String usernameArg, Long fromId) {
         if (usernameArg == null || usernameArg.isBlank()) {
-            // По ТЗ: если не можем определить пользователя — "Пользователь не найден"
+            log.info("Bot: /recommend missing username. chat_id={}, from_id={}", chatId, fromId);
             sendMessage(chatId, "Пользователь не найден");
             return;
         }
 
         String username = usernameArg.trim();
+        log.debug("Bot: lookup user by username. chat_id={}, from_id={}, username={}", chatId, fromId, username);
 
         List<UserLookupRepository.BankUserRow> users = userLookupRepository.findByUsername(username);
+        log.debug("Bot: user lookup result. chat_id={}, from_id={}, username={}, found={}",
+                chatId, fromId, username, users.size());
 
-        // По ТЗ: 0 результатов -> "Пользователь не найден", >1 -> тоже "Пользователь не найден"
         if (users.size() != 1) {
+            log.info("Bot: user not found or ambiguous. chat_id={}, from_id={}, username={}, found={}",
+                    chatId, fromId, username, users.size());
             sendMessage(chatId, "Пользователь не найден");
             return;
         }
 
         UserLookupRepository.BankUserRow user = users.get(0);
-
-        log.info("Bot: /recommend. chat_id={}, username={}, user_id={}", chatId, username, user.id());
+        log.info("Bot: user resolved. chat_id={}, from_id={}, username={}, user_id={}, name='{} {}'",
+                chatId, fromId, username, user.id(), user.firstName(), user.lastName());
 
         RecommendationResponseDto response;
         try {
             response = recommendationService.getRecommendations(user.id());
         } catch (Exception e) {
-            log.error("Bot: error while getting recommendations. chat_id={}, user_id={}", chatId, user.id(), e);
+            log.error("Bot: error while getting recommendations. chat_id={}, from_id={}, user_id={}",
+                    chatId, fromId, user.id(), e);
             sendMessage(chatId, "Ошибка при получении рекомендаций, попробуйте позже.");
             return;
         }
 
-        String message = formatRecommendationsMessage(user.firstName(), user.lastName(), response.recommendations());
+        List<RecommendationDto> recs = response.recommendations();
+        log.info("Bot: recommendations computed. chat_id={}, from_id={}, user_id={}, count={}",
+                chatId, fromId, user.id(), recs.size());
+
+        String message = formatRecommendationsMessage(user.firstName(), user.lastName(), recs);
         sendMessage(chatId, message);
     }
 
@@ -160,10 +196,26 @@ public class TelegramBotService extends TelegramLongPollingBot {
 
     private void sendMessage(Long chatId, String text) {
         SendMessage message = new SendMessage(chatId.toString(), text);
+
         try {
             execute(message);
+            log.debug("Bot: message sent. chat_id={}, length={}", chatId, text != null ? text.length() : 0);
+        } catch (TelegramApiRequestException e) {
+            int code = e.getErrorCode();
+            String apiResponse = e.getApiResponse();
+
+            if (code == 401) {
+                log.error("Bot: send failed (401 Unauthorized). Проверь TELEGRAM_BOT_TOKEN. chat_id={}, apiResponse={}",
+                        chatId, apiResponse);
+            } else if (code == 403) {
+                log.warn("Bot: send failed (403 Forbidden). User may have blocked the bot. chat_id={}, apiResponse={}",
+                        chatId, apiResponse);
+            } else {
+                log.error("Bot: send failed. chat_id={}, errorCode={}, apiResponse={}",
+                        chatId, code, apiResponse, e);
+            }
         } catch (TelegramApiException e) {
-            log.error("Bot: failed to send message. chat_id={}", chatId, e);
+            log.error("Bot: failed to send message (TelegramApiException). chat_id={}", chatId, e);
         }
     }
 }
