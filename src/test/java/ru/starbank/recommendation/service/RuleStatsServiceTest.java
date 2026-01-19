@@ -71,7 +71,26 @@ class RuleStatsServiceTest {
 
     /**
      * Стаб для projection из RuleStatsRepository.
+     * <p>Урок из 3х часового разбирательства почему падает Spring Data Projection - Никогда не используй Record классы как sub'ы!</p>
      */
-        private record ProjectionStub(Long ruleId, Long count) implements RuleStatsRepository.RuleStatProjection {
+    private static final class ProjectionStub implements RuleStatsRepository.RuleStatProjection {
+
+        private final Long ruleId;
+        private final Long count;
+
+        private ProjectionStub(Long ruleId, Long count) {
+            this.ruleId = ruleId;
+            this.count = count;
+        }
+
+        @Override
+        public Long getRuleId() {
+            return ruleId;
+        }
+
+        @Override
+        public Long getCount() {
+            return count;
+        }
     }
 }

@@ -47,8 +47,8 @@ public class RuleStatsService {
         List<RuleStatDto> stats = ruleStatsRepository.findAllRuleStats()
                                                      .stream()
                                                      .map(p -> new RuleStatDto(
-                                                             String.valueOf(p.ruleId()),
-                                                             String.valueOf(p.count())
+                                                             String.valueOf(p.getRuleId()),
+                                                             String.valueOf(p.getCount())
                                                      ))
                                                      .toList();
 
