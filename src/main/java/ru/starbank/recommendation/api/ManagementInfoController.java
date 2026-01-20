@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +21,7 @@ import ru.starbank.recommendation.domain.dto.management.ManagementInfoDto;
 @RequestMapping("/management")
 public class ManagementInfoController {
 
+    private static final Logger log = LoggerFactory.getLogger(ManagementInfoController.class);
     private final BuildProperties buildProperties;
 
     public ManagementInfoController(BuildProperties buildProperties) {
@@ -38,6 +41,7 @@ public class ManagementInfoController {
             })
     @GetMapping("/info")
     public ManagementInfoDto info() {
+        log.info("Requesting service info with name: {} and version: {}", buildProperties.getName(), buildProperties.getVersion());
         return new ManagementInfoDto(
                 buildProperties.getName(),
                 buildProperties.getVersion()

@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +36,7 @@ import ru.starbank.recommendation.service.RuleStatsService;
 @RequestMapping("/rule")
 public class RuleController {
 
+    private static final Logger log = LoggerFactory.getLogger(RuleController.class);
     private final RuleService ruleService;
     private final RuleStatsService ruleStatsService;
 
@@ -59,6 +62,7 @@ public class RuleController {
             })
     @PostMapping
     public RuleDto createRule(@Valid @RequestBody CreateRuleRequestDto request) {
+        log.info("Creating new dynamic rule");
         return ruleService.createRule(request);
     }
 
@@ -77,6 +81,7 @@ public class RuleController {
             })
     @GetMapping
     public RuleListResponseDto getRules() {
+        log.info("Return all dynamic rules");
         return ruleService.getRules();
     }
 
@@ -95,6 +100,7 @@ public class RuleController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteRule(@PathVariable("id") long id) {
+        log.info("New request to delete rule with id: {}", id);
         ruleService.deleteRule(id);
     }
 
@@ -114,6 +120,7 @@ public class RuleController {
             })
     @GetMapping("/stats")
     public RuleStatsResponseDto getRuleStats() {
+        log.info("Requesting stats for dynamic rules");
         return ruleStatsService.getStats();
     }
 }

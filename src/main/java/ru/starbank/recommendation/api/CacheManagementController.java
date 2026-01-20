@@ -3,6 +3,8 @@ package ru.starbank.recommendation.api;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +20,7 @@ import ru.starbank.recommendation.service.CacheManagementService;
 @RequestMapping("/management")
 public class CacheManagementController {
 
+    private static final Logger log = LoggerFactory.getLogger(CacheManagementController.class);
     private final CacheManagementService cacheManagementService;
 
     public CacheManagementController(CacheManagementService cacheManagementService) {
@@ -39,6 +42,7 @@ public class CacheManagementController {
     @PostMapping("/clear-caches")
     @ResponseStatus(HttpStatus.OK)
     public void clearCaches() {
+        log.info("Clearing all caches in the system");
         cacheManagementService.clearAllCaches();
     }
 }
