@@ -50,7 +50,7 @@ public class RuleStatsService {
                                                              String.valueOf(p.getRuleId()),
                                                              String.valueOf(p.getCount())
                                                      ))
-                                                     .toList();
+                                                      .toList();
 
         return new RuleStatsResponseDto(stats);
     }
