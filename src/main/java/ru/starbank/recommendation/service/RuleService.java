@@ -99,7 +99,7 @@ public class RuleService {
 
     /**
      * Удаляет правило по id.
-     * Если правила нет — кидает исключение (позже обработаем в ControllerAdvice).
+     * Если правила нет — кидает исключение (обработается в ControllerAdvice).
      */
     @Transactional(transactionManager = "rulesTransactionManager")
     public void deleteRule(long id) {
