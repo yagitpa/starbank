@@ -80,7 +80,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Caffeine cache -->
+        <!-- Caffeine cacheapi -->
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>

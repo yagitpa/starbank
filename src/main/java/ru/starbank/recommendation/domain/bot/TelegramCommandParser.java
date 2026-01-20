@@ -9,8 +9,8 @@ import java.util.Optional;
  *
  * Поддерживает:
  * - /start
- * - /recommend <username>
- * - /recommend@BotName <username>
+ * - /recommendapi <username>
+ * - /recommendapi@BotName <username>
  */
 public class TelegramCommandParser {
 
@@ -34,7 +34,7 @@ public class TelegramCommandParser {
 
         // Разбиваем на "/command" и "argument..."
         String[] parts = text.split("\\s+", 2);
-        String head = parts[0]; // например "/recommend@MyBot"
+        String head = parts[0]; // например "/recommendapi@MyBot"
         String arg = (parts.length > 1) ? parts[1].trim() : null;
 
         String command = stripSlash(head);

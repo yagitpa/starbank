@@ -27,7 +27,7 @@ import java.util.Optional;
  *
  * Команды:
  * - /start — приветствие и справка
- * - /recommend <username> — рекомендации
+ * - /recommendapi <username> — рекомендации
  *
  * Требования ТЗ:
  * - если 0 или >1 пользователей — строго "Пользователь не найден"
@@ -113,8 +113,8 @@ public class TelegramBotService extends TelegramLongPollingBot {
                 log.info("Bot: /start. chat_id={}, from_id={}", chatId, fromId);
                 sendHelpMessage(chatId);
             }
-            case "recommend" -> {
-                log.info("Bot: /recommend received. chat_id={}, from_id={}, arg={}", chatId, fromId, cmd.argument());
+            case "recommendapi" -> {
+                log.info("Bot: /recommendapi received. chat_id={}, from_id={}, arg={}", chatId, fromId, cmd.argument());
                 handleRecommendCommand(chatId, cmd.argument(), fromId);
             }
             default -> {
@@ -126,7 +126,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
 
     private void handleRecommendCommand(Long chatId, String usernameArg, Long fromId) {
         if (usernameArg == null || usernameArg.isBlank()) {
-            log.info("Bot: /recommend missing username. chat_id={}, from_id={}", chatId, fromId);
+            log.info("Bot: /recommendapi missing username. chat_id={}, from_id={}", chatId, fromId);
             sendMessage(chatId, "Пользователь не найден");
             return;
         }
@@ -189,7 +189,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
     private void sendHelpMessage(Long chatId) {
         String welcomeMessage = "Здравствуйте! Я ваш виртуальный помощник.\n\n";
         String helpMessage = "Доступные команды:\n" +
-                "/recommend <username> — получите рекомендации для пользователя.\n\n" +
+                "/recommendapi <username> — получите рекомендации для пользователя.\n\n" +
                 "Просто напишите мне команду!";
         sendMessage(chatId, welcomeMessage + helpMessage);
     }

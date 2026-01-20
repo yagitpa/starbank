@@ -25,10 +25,10 @@ class TelegramCommandParserTest {
     void parse_shouldParseRecommendWithUsername() {
         TelegramCommandParser parser = new TelegramCommandParser("Recommendations100500Bot");
 
-        Optional<TelegramCommand> cmd = parser.parse("/recommend user123");
+        Optional<TelegramCommand> cmd = parser.parse("/recommendapi user123");
 
         assertTrue(cmd.isPresent());
-        assertEquals("recommend", cmd.get().name());
+        assertEquals("recommendapi", cmd.get().name());
         assertEquals("user123", cmd.get().argument());
     }
 
@@ -36,10 +36,10 @@ class TelegramCommandParserTest {
     void parse_shouldHandleMultipleSpaces() {
         TelegramCommandParser parser = new TelegramCommandParser("Recommendations100500Bot");
 
-        Optional<TelegramCommand> cmd = parser.parse("   /recommend     user123    ");
+        Optional<TelegramCommand> cmd = parser.parse("   /recommendapi     user123    ");
 
         assertTrue(cmd.isPresent());
-        assertEquals("recommend", cmd.get().name());
+        assertEquals("recommendapi", cmd.get().name());
         assertEquals("user123", cmd.get().argument());
     }
 
@@ -47,10 +47,10 @@ class TelegramCommandParserTest {
     void parse_shouldParseRecommendWithBotMention() {
         TelegramCommandParser parser = new TelegramCommandParser("Recommendations100500Bot");
 
-        Optional<TelegramCommand> cmd = parser.parse("/recommend@Recommendations100500Bot user123");
+        Optional<TelegramCommand> cmd = parser.parse("/recommendapi@Recommendations100500Bot user123");
 
         assertTrue(cmd.isPresent());
-        assertEquals("recommend", cmd.get().name());
+        assertEquals("recommendapi", cmd.get().name());
         assertEquals("user123", cmd.get().argument());
     }
 
@@ -58,7 +58,7 @@ class TelegramCommandParserTest {
     void parse_shouldIgnoreCommandForAnotherBot() {
         TelegramCommandParser parser = new TelegramCommandParser("Recommendations100500Bot");
 
-        Optional<TelegramCommand> cmd = parser.parse("/recommend@AnotherBot user123");
+        Optional<TelegramCommand> cmd = parser.parse("/recommendapi@AnotherBot user123");
 
         assertTrue(cmd.isEmpty());
     }

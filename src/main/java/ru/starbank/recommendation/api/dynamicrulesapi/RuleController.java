@@ -1,4 +1,4 @@
-package ru.starbank.recommendation.api;
+package ru.starbank.recommendation.api.dynamicrulesapi;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

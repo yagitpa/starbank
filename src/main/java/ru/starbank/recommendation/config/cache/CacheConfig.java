@@ -12,7 +12,7 @@ import java.util.UUID;
 /**
  * Конфигурация кешей для репозитория knowledge DB (Stage 3).
  *
- * <p>Кешируем результаты SQL-запросов к knowledge DB (read-only), используя явный Caffeine cache.get(key, mappingFn).</p>
+ * <p>Кешируем результаты SQL-запросов к knowledge DB (read-only), используя явный Caffeine cacheapi.get(key, mappingFn).</p>
  *
  * <p>По требованиям Stage 3: не более 3 кешей.</p>
  *
