@@ -15,7 +15,7 @@ import ru.starbank.recommendation.domain.bot.TelegramCommandParser;
 import ru.starbank.recommendation.domain.bot.TelegramRateLimiter;
 import ru.starbank.recommendation.domain.dto.RecommendationDto;
 import ru.starbank.recommendation.domain.dto.RecommendationResponseDto;
-import ru.starbank.recommendation.repository.UserLookupRepository;
+import ru.starbank.recommendation.repository.jdbc.UserLookupRepository;
 import ru.starbank.recommendation.service.RecommendationService;
 
 import java.util.List;

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import ru.starbank.recommendation.domain.dto.RecommendationResponseDto;
 import ru.starbank.recommendation.service.RecommendationService;
-import ru.starbank.recommendation.support.util.UuidParser;
+import ru.starbank.recommendation.util.UuidParser;
 
 import java.util.UUID;
 

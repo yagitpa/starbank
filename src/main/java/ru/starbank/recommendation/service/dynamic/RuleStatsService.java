@@ -1,13 +1,13 @@
-package ru.starbank.recommendation.service;
+package ru.starbank.recommendation.service.dynamic;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import ru.starbank.recommendation.domain.dto.rule.RuleStatDto;
+import ru.starbank.recommendation.domain.dto.rule.RuleStatsDto;
 import ru.starbank.recommendation.domain.dto.rule.RuleStatsResponseDto;
-import ru.starbank.recommendation.repository.RuleStatsRepository;
+import ru.starbank.recommendation.repository.jpa.RuleStatsRepository;
 
 import java.util.List;
 
@@ -44,13 +44,13 @@ public class RuleStatsService {
      */
     @Transactional(readOnly = true, transactionManager = "rulesTransactionManager")
     public RuleStatsResponseDto getStats() {
-        List<RuleStatDto> stats = ruleStatsRepository.findAllRuleStats()
-                                                     .stream()
-                                                     .map(p -> new RuleStatDto(
+        List<RuleStatsDto> stats = ruleStatsRepository.findAllRuleStats()
+                                                      .stream()
+                                                      .map(p -> new RuleStatsDto(
                                                              String.valueOf(p.getRuleId()),
                                                              String.valueOf(p.getCount())
                                                      ))
-                                                     .toList();
+                                                      .toList();
 
         return new RuleStatsResponseDto(stats);
     }

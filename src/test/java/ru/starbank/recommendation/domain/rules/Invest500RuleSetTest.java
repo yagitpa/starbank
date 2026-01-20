@@ -2,7 +2,7 @@ package ru.starbank.recommendation.domain.rules;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import ru.starbank.recommendation.repository.RecommendationRepository;
+import ru.starbank.recommendation.repository.jdbc.RecommendationRepository;
 
 import java.util.UUID;
 

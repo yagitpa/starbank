@@ -3,7 +3,8 @@ package ru.starbank.recommendation.service;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import ru.starbank.recommendation.domain.dto.rule.RuleStatsResponseDto;
-import ru.starbank.recommendation.repository.RuleStatsRepository;
+import ru.starbank.recommendation.repository.jpa.RuleStatsRepository;
+import ru.starbank.recommendation.service.dynamic.RuleStatsService;
 
 import java.util.List;
 

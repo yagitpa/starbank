@@ -1,4 +1,4 @@
-package ru.starbank.recommendation.service;
+package ru.starbank.recommendation.service.dynamic;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -16,8 +16,8 @@ import ru.starbank.recommendation.domain.rules.entity.RuleEntity;
 import ru.starbank.recommendation.domain.rules.entity.RuleQueryEntity;
 import ru.starbank.recommendation.domain.rules.entity.RuleStatsEntity;
 import ru.starbank.recommendation.exception.RuleNotFoundException;
-import ru.starbank.recommendation.repository.RuleRepository;
-import ru.starbank.recommendation.repository.RuleStatsRepository;
+import ru.starbank.recommendation.repository.jpa.RuleRepository;
+import ru.starbank.recommendation.repository.jpa.RuleStatsRepository;
 
 import java.util.List;
 

@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import ru.starbank.recommendation.domain.dto.RecommendationDto;
-import ru.starbank.recommendation.repository.RecommendationRepository;
+import ru.starbank.recommendation.repository.jdbc.RecommendationRepository;
 
 import java.util.Optional;
 import java.util.UUID;

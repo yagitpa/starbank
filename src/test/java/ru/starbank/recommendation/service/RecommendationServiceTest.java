@@ -5,6 +5,7 @@ import org.mockito.Mockito;
 import ru.starbank.recommendation.domain.dto.RecommendationDto;
 import ru.starbank.recommendation.domain.dto.RecommendationResponseDto;
 import ru.starbank.recommendation.domain.rules.RecommendationRuleSet;
+import ru.starbank.recommendation.service.dynamic.DynamicRulesRecommendationService;
 
 import java.util.List;
 import java.util.Optional;

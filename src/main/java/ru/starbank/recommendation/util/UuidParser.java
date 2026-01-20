@@ -1,4 +1,4 @@
-package ru.starbank.recommendation.support.util;
+package ru.starbank.recommendation.util;
 
 import ru.starbank.recommendation.exception.InvalidUserIdException;
 

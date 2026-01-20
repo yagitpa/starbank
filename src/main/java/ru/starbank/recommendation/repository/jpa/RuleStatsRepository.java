@@ -1,4 +1,4 @@
-package ru.starbank.recommendation.repository;
+package ru.starbank.recommendation.repository.jpa;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

@@ -1,4 +1,4 @@
-package ru.starbank.recommendation.config;
+package ru.starbank.recommendation.config.db;
 
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;

@@ -14,6 +14,6 @@ import java.util.List;
  * </pre>
  */
 public record RuleStatsResponseDto(
-        List<RuleStatDto> stats
+        List<RuleStatsDto> stats
 ) {
 }

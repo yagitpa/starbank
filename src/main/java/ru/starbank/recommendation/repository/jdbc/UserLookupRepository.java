@@ -1,4 +1,4 @@
-package ru.starbank.recommendation.repository;
+package ru.starbank.recommendation.repository.jdbc;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;

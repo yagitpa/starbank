@@ -1,4 +1,4 @@
-package ru.starbank.recommendation.repository;
+package ru.starbank.recommendation.repository.jdbc;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

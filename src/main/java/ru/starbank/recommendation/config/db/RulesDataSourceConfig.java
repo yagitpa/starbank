@@ -1,4 +1,4 @@
-package ru.starbank.recommendation.config;
+package ru.starbank.recommendation.config.db;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;

@@ -1,4 +1,4 @@
-package ru.starbank.recommendation.config;
+package ru.starbank.recommendation.config.db;
 
 import liquibase.integration.spring.SpringLiquibase;
 import org.springframework.beans.factory.annotation.Qualifier;

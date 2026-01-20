@@ -2,7 +2,8 @@ package ru.starbank.recommendation.service;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import ru.starbank.recommendation.repository.RuleStatsRepository;
+import ru.starbank.recommendation.repository.jpa.RuleStatsRepository;
+import ru.starbank.recommendation.service.dynamic.RuleStatsService;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.times;
