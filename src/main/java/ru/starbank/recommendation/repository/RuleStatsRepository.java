@@ -42,7 +42,7 @@ public interface RuleStatsRepository extends JpaRepository<RuleStatsEntity, Long
      * <p>ВАЖНО: Spring Data ожидает accessor-методы вида getXxx().</p>
      */
     interface RuleStatProjection {
-        Long getRuleId();
-        Long getCount();
+        Long ruleId();
+        Long count();
     }
 }
