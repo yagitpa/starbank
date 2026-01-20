@@ -12,3 +12,4 @@
 /.idea/vcs.xml
 /.idea/workspace.xml
 /src/main/resources/application-local.yml
+/logs/

@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 
 import java.time.Duration;
 import java.util.UUID;
@@ -51,15 +52,15 @@ public class CacheConfig {
     /**
      * Ключ кеша: есть ли у пользователя хотя бы одна транзакция по продуктам типа productType.
      */
-    public record HasAnyTransactionKey(UUID userId, String productType) {}
+    public record HasAnyTransactionKey(@NonNull UUID userId, @NonNull String productType) {}
 
     /**
      * Ключ кеша: количество транзакций пользователя по продуктам типа productType.
      */
-    public record CountTransactionsKey(UUID userId, String productType) {}
+    public record CountTransactionsKey(@NonNull UUID userId, @NonNull String productType) {}
 
     /**
      * Ключ кеша: сумма amount по пользователю, productType и transactionType.
      */
-    public record SumAmountKey(UUID userId, String productType, String transactionType) {}
+    public record SumAmountKey(@NonNull UUID userId, @NonNull String productType, @NonNull String transactionType) {}
 }

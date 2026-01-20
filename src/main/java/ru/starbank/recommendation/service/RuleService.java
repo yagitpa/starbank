@@ -147,6 +147,7 @@ public class RuleService {
         try {
             return objectMapper.writeValueAsString(arguments);
         } catch (JsonProcessingException e) {
+            log.error("Error due serialize arguments: {}", arguments);
             throw new IllegalStateException("Не удалось сериализовать arguments в JSON", e);
         }
     }
@@ -158,6 +159,7 @@ public class RuleService {
         try {
             return objectMapper.readValue(argumentsJson, STRING_LIST_TYPE);
         } catch (JsonProcessingException e) {
+            log.error("Error due parsing arguments {} from JSON", argumentsJson);
             throw new IllegalStateException("Не удалось распарсить arguments из JSON: " + argumentsJson, e);
         }
     }
