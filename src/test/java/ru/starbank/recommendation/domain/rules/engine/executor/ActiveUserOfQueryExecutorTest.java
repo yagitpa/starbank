@@ -6,7 +6,7 @@ import org.mockito.Mockito;
 import ru.starbank.recommendation.domain.rules.engine.QueryArgumentsParser;
 import ru.starbank.recommendation.domain.rules.entity.QueryType;
 import ru.starbank.recommendation.domain.rules.entity.RuleQueryEntity;
-import ru.starbank.recommendation.repository.KnowledgeRepository;
+import ru.starbank.recommendation.repository.jdbc.KnowledgeRepository;
 
 import java.util.UUID;
 
@@ -25,7 +25,7 @@ class ActiveUserOfQueryExecutorTest {
         UUID userId = UUID.randomUUID();
         RuleQueryEntity query = new RuleQueryEntity(QueryType.ACTIVE_USER_OF, "[\"DEBIT\"]", false);
 
-        when(knowledgeRepository.countTransactions(userId, "DEBIT")).thenReturn(5L);
+        when(knowledgeRepository.countTransactions(userId, "DEBIT")).thenReturn(5);
 
         assertTrue(executor.execute(userId, query));
     }
@@ -39,7 +39,7 @@ class ActiveUserOfQueryExecutorTest {
         UUID userId = UUID.randomUUID();
         RuleQueryEntity query = new RuleQueryEntity(QueryType.ACTIVE_USER_OF, "[\"DEBIT\"]", false);
 
-        when(knowledgeRepository.countTransactions(userId, "DEBIT")).thenReturn(4L);
+        when(knowledgeRepository.countTransactions(userId, "DEBIT")).thenReturn(4);
 
         assertFalse(executor.execute(userId, query));
     }

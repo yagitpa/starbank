@@ -6,7 +6,7 @@ import org.mockito.Mockito;
 import ru.starbank.recommendation.domain.rules.engine.QueryArgumentsParser;
 import ru.starbank.recommendation.domain.rules.entity.QueryType;
 import ru.starbank.recommendation.domain.rules.entity.RuleQueryEntity;
-import ru.starbank.recommendation.repository.KnowledgeRepository;
+import ru.starbank.recommendation.repository.jdbc.KnowledgeRepository;
 
 import java.util.UUID;
 
