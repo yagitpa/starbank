@@ -1,5 +1,8 @@
 package ru.starbank.recommendation.api;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,6 +13,7 @@ import ru.starbank.recommendation.service.CacheManagementService;
 /**
  * Технологические (management) эндпоинты Stage 3.
  */
+@Tag(name = "3. Cache management", description = "Управление кэшами")
 @RestController
 @RequestMapping("/management")
 public class CacheManagementController {
@@ -26,6 +30,12 @@ public class CacheManagementController {
      * <p>POST без тела. После вызова кеш считается очищенным, и следующие запросы
      * должны заново обращаться к БД.</p>
      */
+    @Operation(summary = "Очистить все кэши",
+            description = "Очистить все кэшированные данные в системе.",
+            responses = {
+                    @ApiResponse(responseCode = "204",
+                            description = "Кэши успешно очищены")
+            })
     @PostMapping("/clear-caches")
     @ResponseStatus(HttpStatus.OK)
     public void clearCaches() {
