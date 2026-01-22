@@ -1,4 +1,8 @@
 spring:
+  # Нужно для тестов, когда будем подменять бины через @MockBean (например, BuildProperties для /management/info)
+  main:
+    allow-bean-definition-overriding: true
+
   # Основная БД (knowledge DB) — H2 in-memory для интеграционных тестов
   datasource:
     driver-class-name: org.h2.Driver
@@ -28,3 +32,8 @@ spring:
       mode: always
       schema-locations: classpath:sql/knowledge-schema.sql
       data-locations: classpath:sql/knowledge-data.sql
+
+telegram:
+  bot:
+    # Ключевой флаг для тестов: отключаем регистрацию long polling (чтобы тесты не зависели от сети/токена)
+    enabled: false

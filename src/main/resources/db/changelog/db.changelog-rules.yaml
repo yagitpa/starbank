@@ -85,3 +85,44 @@ databaseChangeLog:
             columns:
               - column:
                   name: rule_id
+
+  - changeSet:
+      id: stage3-rules-003-create-rule-stats
+      author: starbank
+      changes:
+        - createTable:
+            tableName: rule_stats
+            columns:
+              - column:
+                  name: rule_id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: count
+                  type: BIGINT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: rule_stats
+            baseColumnNames: rule_id
+            referencedTableName: rules
+            referencedColumnNames: id
+            constraintName: fk_rule_stats_rule_id
+            onDelete: CASCADE
+
+        # Backfill: для уже существующих правил создаём статистику со значением 0
+        - sql:
+            splitStatements: false
+            sql: |
+              INSERT INTO rule_stats(rule_id, count)
+              SELECT r.id, 0
+              FROM rules r
+              WHERE NOT EXISTS (
+                  SELECT 1
+                  FROM rule_stats s
+                  WHERE s.rule_id = r.id
+              );

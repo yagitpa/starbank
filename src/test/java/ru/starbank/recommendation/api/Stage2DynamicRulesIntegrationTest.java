@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Интеграционный тест Stage 2:
  * CRUD динамических правил + влияние на /recommendation/{userId}.
  */
-@SpringBootTest
+@SpringBootTest(properties = "telegram.bot.enabled=false")
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class Stage2DynamicRulesIntegrationTest {

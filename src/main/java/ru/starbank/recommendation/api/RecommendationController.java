@@ -21,7 +21,7 @@ import java.util.UUID;
 /**
  * REST controller for recommendation endpoint.
  */
-@Tag(name = "Recommendations", description = "Получение рекомендаций для пользователя")
+@Tag(name = "1. Recommendations", description = "Получение рекомендаций для пользователя")
 @RestController
 public class RecommendationController {
     private static final Logger log = LoggerFactory.getLogger(RecommendationController.class);
@@ -45,9 +45,9 @@ public class RecommendationController {
      * @return recommendation response
      */
     @Operation(
-            summary = "Get product recommendations for a user",
+            summary = "Получает рекомендации для пользователя",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Recommendations returned",
+                    @ApiResponse(responseCode = "200", description = "Рекомендации отправлены",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = RecommendationResponseDto.class))),
                     @ApiResponse(responseCode = "400", description = "Invalid user_id")

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.starbank.recommendation.domain.dto.rule.CreateRuleRequestDto;
@@ -13,8 +14,10 @@ import ru.starbank.recommendation.domain.dto.rule.RuleListResponseDto;
 import ru.starbank.recommendation.domain.dto.rule.RuleQueryDto;
 import ru.starbank.recommendation.domain.rules.entity.RuleEntity;
 import ru.starbank.recommendation.domain.rules.entity.RuleQueryEntity;
+import ru.starbank.recommendation.domain.rules.entity.RuleStatsEntity;
 import ru.starbank.recommendation.exception.RuleNotFoundException;
 import ru.starbank.recommendation.repository.RuleRepository;
+import ru.starbank.recommendation.repository.RuleStatsRepository;
 
 import java.util.List;
 
@@ -31,10 +34,12 @@ public class RuleService {
 
     private final RuleRepository ruleRepository;
     private final ObjectMapper objectMapper;
+    private final RuleStatsRepository ruleStatsRepository;
 
-    public RuleService(RuleRepository ruleRepository, ObjectMapper objectMapper) {
+    public RuleService(RuleRepository ruleRepository, ObjectMapper objectMapper, RuleStatsRepository ruleStatsRepository) {
         this.ruleRepository = ruleRepository;
         this.objectMapper = objectMapper;
+        this.ruleStatsRepository = ruleStatsRepository;
     }
 
     /**
@@ -63,6 +68,17 @@ public class RuleService {
 
         RuleEntity saved = ruleRepository.save(entity);
         log.info("Dynamic rule created: id={}, product_id={}", saved.getId(), saved.getProductId());
+
+        // Stage 3: статистика срабатываний правил.
+        // В тестовом окружении/при не применённых миграциях таблицы stats может не быть.
+        // Не валим создание правила — логируем и продолжаем.
+        try {
+            ruleStatsRepository.save(new RuleStatsEntity(saved));
+        } catch (DataAccessException ex) {
+            log.warn("Rule stats not saved (rule_stats table may be missing). rule_id={}. Cause: {}",
+                    saved.getId(), ex.getMessage());
+        }
+
         return toDto(saved);
     }
 
@@ -83,7 +99,7 @@ public class RuleService {
 
     /**
      * Удаляет правило по id.
-     * Если правила нет — кидает исключение (позже обработаем в ControllerAdvice).
+     * Если правила нет — кидает исключение (обработается в ControllerAdvice).
      */
     @Transactional(transactionManager = "rulesTransactionManager")
     public void deleteRule(long id) {
@@ -96,7 +112,6 @@ public class RuleService {
         ruleRepository.deleteById(id);
         log.info("Dynamic rule deleted: id={}", id);
     }
-
 
     // -------------------- Mapping --------------------
 
@@ -132,6 +147,7 @@ public class RuleService {
         try {
             return objectMapper.writeValueAsString(arguments);
         } catch (JsonProcessingException e) {
+            log.error("Error due serialize arguments: {}", arguments);
             throw new IllegalStateException("Не удалось сериализовать arguments в JSON", e);
         }
     }
@@ -143,6 +159,7 @@ public class RuleService {
         try {
             return objectMapper.readValue(argumentsJson, STRING_LIST_TYPE);
         } catch (JsonProcessingException e) {
+            log.error("Error due parsing arguments {} from JSON", argumentsJson);
             throw new IllegalStateException("Не удалось распарсить arguments из JSON: " + argumentsJson, e);
         }
     }

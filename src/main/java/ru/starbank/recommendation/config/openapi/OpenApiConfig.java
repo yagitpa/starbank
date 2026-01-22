@@ -1,4 +1,4 @@
-package ru.starbank.recommendation.api;
+package ru.starbank.recommendation.config.openapi;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -24,7 +24,12 @@ public class OpenApiConfig {
                                 - rule engine (4 типа query)
                                 - кеширование (Caffeine)
                                 - обратная совместимость /recommendation
+                                
+                                Stage 3:
+                                - статистика динамических правил (/rule/stats)
+                                - информация о сервисе (/management/info)
+                                - очистка кэшей (management/clear-caches)
                                 """)
-                        .version("stage-2"));
+                        .version("stage-3"));
     }
 }
